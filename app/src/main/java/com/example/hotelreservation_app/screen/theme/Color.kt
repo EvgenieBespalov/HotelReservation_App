@@ -1,4 +1,4 @@
-package com.example.hotelreservation_app.ui.theme
+package com.example.hotelreservation_app.screen.theme
 
 import androidx.compose.ui.graphics.Color
 

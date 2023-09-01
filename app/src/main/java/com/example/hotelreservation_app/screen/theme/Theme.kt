@@ -1,4 +1,4 @@
-package com.example.hotelreservation_app.ui.theme
+package com.example.hotelreservation_app.screen.theme
 
 import android.app.Activity
 import android.os.Build

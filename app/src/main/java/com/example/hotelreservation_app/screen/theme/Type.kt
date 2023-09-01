@@ -1,4 +1,4 @@
-package com.example.hotelreservation_app.ui.theme
+package com.example.hotelreservation_app.screen.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
