@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.hotelreservation_app.R
+import java.lang.Math.abs
 
 @Composable
 fun HotelScreen(){
@@ -34,9 +35,9 @@ fun HotelScreen(){
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun HotelMainInfo(){
-    val color = listOf(Color.Red, Color.Black, Color.Blue, Color.Green)
+    val color = listOf(Color.Red, Color.Black, Color.Blue, Color.Green, Color.Magenta)
     val pagerState = rememberPagerState(0)
-    val pageCount = 4
+    val pageCount = 5
 
     Column(
         modifier = Modifier
@@ -115,14 +116,22 @@ fun HotelMainInfo(){
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     repeat(pageCount) { iteration ->
-                        val color = if (pagerState.currentPage == iteration) Color.DarkGray else Color.LightGray
+                        //val color = if (pagerState.currentPage == iteration) Color.Black else Color.LightGray
+
+                        val color = when(abs(iteration - pagerState.currentPage)){
+                            0 -> Color(0xFF000000)
+                            1 -> Color(0x37000000)
+                            2 -> Color(0x2B000000)
+                            3 -> Color(0x1A000000)
+                            4 -> Color(0xD000000)
+                            else -> Color(0x0)
+                        }
                         Box(
                             modifier = Modifier
                                 .padding(4.dp)
                                 .clip(CircleShape)
                                 .background(color)
                                 .size(10.dp)
-
                         )
                     }
                 }
@@ -220,6 +229,7 @@ fun HotelMainInfo(){
                 tags.forEach { tag ->
                     Box(
                         modifier = Modifier
+                            .padding(bottom = 10.dp, end = 10.dp)
                             .graphicsLayer {
                                 clip = true
                                 shape = RoundedCornerShape(7.dp)
@@ -227,7 +237,6 @@ fun HotelMainInfo(){
                             .background(color = Color(0xFFFBFBFC)),
                     ){
                         Text(
-                            modifier = Modifier.padding(bottom = 10.dp, end = 10.dp),
                             text = tag,
                             fontSize =  18.sp,
                             color = Color(0xFF828796)
