@@ -202,12 +202,7 @@ fun HotelMainInfo(){
             }
         }
 
-        Spacer(
-            modifier = Modifier
-                .height(10.dp)
-                .fillMaxWidth()
-                .background(Color(0xFFF6F6F9))
-        )
+        SpacerBetween()
 
         val tags = listOf("Бесплатный Wifi на всей территории отеля", "1 км до пляжа", "Бесплатный фитнес-клуб", "20 км до аэропорта")
 
@@ -230,11 +225,11 @@ fun HotelMainInfo(){
                     Box(
                         modifier = Modifier
                             .padding(bottom = 10.dp, end = 10.dp)
+                            .background(color = Color(0xFFFBFBFC))
                             .graphicsLayer {
                                 clip = true
                                 shape = RoundedCornerShape(7.dp)
-                            }
-                            .background(color = Color(0xFFFBFBFC)),
+                            },
                     ){
                         Text(
                             text = tag,
@@ -393,12 +388,7 @@ fun HotelMainInfo(){
 
         }
 
-        Spacer(
-            modifier = Modifier
-                .height(10.dp)
-                .fillMaxWidth()
-                .background(Color(0xFFF6F6F9))
-        )
+        SpacerBetween()
 
         Button(
             modifier = Modifier
