@@ -24,21 +24,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.hotelreservation_app.R
+import com.example.hotelreservation_app.screen.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoomScreen(){
+fun RoomScreen(navController: NavHostController){
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
                     IconButton(
-                        onClick = { }
+                        onClick = {
+                            navController.navigate(Routes.HotelScreenRoute.route)
+                        }
                     ) {
                         Icon(
                             painterResource(id = R.drawable.chevron_left),
-                            contentDescription = "Меню"
+                            contentDescription = ""
                         )
                     }
                 },
@@ -57,13 +62,19 @@ fun RoomScreen(){
             )
         },
         content = { padding ->
-            RoomList(padding = padding)
+            RoomList(
+                navController = navController,
+                padding = padding
+            )
         }
     )
 }
 
 @Composable
-fun RoomList(padding: PaddingValues){
+fun RoomList(
+    navController: NavHostController,
+    padding: PaddingValues
+){
     LazyColumn(
         modifier = Modifier
             .padding(padding)
@@ -72,14 +83,18 @@ fun RoomList(padding: PaddingValues){
     ){
         item { Spacer(modifier = Modifier.height(0.dp).fillMaxWidth()) }
         items(10){
-            RoomInfo()
+            RoomInfo(
+                navController
+            )
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
-fun RoomInfo(){
+fun RoomInfo(
+    navController: NavHostController
+){
     val color = listOf(Color.Red, Color.Black, Color.Blue, Color.Green, Color.Magenta)
     val pagerState = rememberPagerState(0)
     val pageCount = 5
@@ -229,7 +244,7 @@ fun RoomInfo(){
                     .fillMaxWidth()
                     .padding(top = 0.dp, bottom = 10.dp),
                 onClick = {
-                    //navController.navigate(Routes.SearchPlanetsScreenRoute.route)
+                    navController.navigate(Routes.BookingScreenRoute.route)
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF0D72FF),
@@ -249,5 +264,6 @@ fun RoomInfo(){
 @Preview
 @Composable
 fun RoomScreenPreview(){
-    RoomScreen()
+    val navController = rememberNavController()
+    RoomScreen(navController)
 }

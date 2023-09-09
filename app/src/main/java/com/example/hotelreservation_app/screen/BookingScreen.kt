@@ -32,21 +32,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.hotelreservation_app.R
+import com.example.hotelreservation_app.screen.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingScreen(){
+fun BookingScreen(navController: NavHostController){
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
                     IconButton(
-                        onClick = { }
+                        onClick = {
+                            navController.navigate(Routes.RoomScreenRoute.route)
+                        }
                     ) {
                         Icon(
                             painterResource(id = R.drawable.chevron_left),
-                            contentDescription = "Меню"
+                            contentDescription = ""
                         )
                     }
                 },
@@ -60,13 +65,19 @@ fun BookingScreen(){
             )
         },
         content = { padding ->
-            BookingInfo(padding = padding)
+            BookingInfo(
+                navController = navController,
+                padding = padding
+            )
         }
     )
 }
 
 @Composable
-fun BookingInfo(padding: PaddingValues){
+fun BookingInfo(
+    navController: NavHostController,
+    padding: PaddingValues
+){
     var countTourists by remember { mutableStateOf(0) }
     val touristNumber = listOf("Второй", "Третий", "Четвертый", "Пятый", "Шестой", "Седьмой", "Восьмой")
 
@@ -742,7 +753,7 @@ fun BookingInfo(padding: PaddingValues){
                         .fillMaxWidth()
                         .padding(top = 0.dp, bottom = 10.dp),
                     onClick = {
-                        //navController.navigate(Routes.SearchPlanetsScreenRoute.route)
+                        navController.navigate(Routes.PaidForScreenRoute.route)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF0D72FF),
@@ -997,7 +1008,8 @@ fun OtherTouristData(touristNumber: String){
 @Preview
 @Composable
 fun BookingScreenPreview(){
-    BookingScreen()
+    val navController = rememberNavController()
+    BookingScreen(navController)
 }
 
 class MaskTransformation() : VisualTransformation {

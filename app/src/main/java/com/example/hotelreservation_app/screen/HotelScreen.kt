@@ -23,18 +23,22 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.example.hotelreservation_app.R
+import com.example.hotelreservation_app.screen.navigation.Routes
 import java.lang.Math.abs
 
 @Composable
-fun HotelScreen(){
-    HotelMainInfo()
-    HotelDetailInfo()
+fun HotelScreen(navController: NavHostController){
+    HotelMainInfo(navController)
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
-fun HotelMainInfo(){
+fun HotelMainInfo(
+    navController: NavHostController
+){
     val color = listOf(Color.Red, Color.Black, Color.Blue, Color.Green, Color.Magenta)
     val pagerState = rememberPagerState(0)
     val pageCount = 5
@@ -394,9 +398,9 @@ fun HotelMainInfo(){
             modifier = Modifier
                 .height(64.dp)
                 .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 10.dp),
+                .padding(start = 21.dp, top = 10.dp, bottom = 10.dp, end = 21.dp),
             onClick = {
-                //navController.navigate(Routes.SearchPlanetsScreenRoute.route)
+                navController.navigate(Routes.RoomScreenRoute.route)
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF0D72FF),
@@ -414,13 +418,9 @@ fun HotelMainInfo(){
 
 }
 
-@Composable
-fun HotelDetailInfo(){
-
-}
-
 @Preview
 @Composable
 fun HotelScreenPreview(){
-    HotelScreen()
+    val navController = rememberNavController()
+    HotelScreen(navController)
 }
