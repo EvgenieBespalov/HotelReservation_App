@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -18,8 +19,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
@@ -272,6 +276,7 @@ fun BookingInfo(
 
                 var phoneNumber by remember { mutableStateOf("") }
                 var phoneNumberCorrect by remember { mutableStateOf(false) }
+
                 TextField(
                     modifier = Modifier
                         .padding(0.dp, 10.dp, 0.dp, 10.dp)
@@ -305,7 +310,7 @@ fun BookingInfo(
                     shape = RoundedCornerShape(10.dp),
                     textStyle = TextStyle(fontSize = 20.sp),
                     visualTransformation = MaskTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 )
 
                 var email by remember { mutableStateOf("") }
@@ -1046,7 +1051,7 @@ fun maskFilter(text: AnnotatedString): TransformedText {
                 in (1..6) -> offset - 4
                 in (7..11) -> offset - 6
                 in (12..14) -> offset - 7
-                in (15..17) -> offset - 8
+                in (15..18) -> offset - 8
                 else -> offset
             }
     }
