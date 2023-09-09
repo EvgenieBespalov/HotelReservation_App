@@ -1,19 +1,19 @@
 package com.example.domain.entity
 
 data class BookingEntity(
-    val id: Int,
+    val id: String,
     val hotelName: String,
     val hotelAdress: String,
-    val horating: Int,
+    val horating: String,
     val ratingName: String,
     val departure: String,
     val arrivalCountry: String,
     val tourDateStart: String,
     val tourDateStop: String,
-    val numberOfNights: Int,
+    val numberOfNights: String,
     val room: String,
     val nutrition: String,
-    val tourPrice: Int,
-    val fuelCharge: Int,
-    val serviceCharge: Int,
+    val tourPrice: String,
+    val fuelCharge: String,
+    val serviceCharge: String,
 )
