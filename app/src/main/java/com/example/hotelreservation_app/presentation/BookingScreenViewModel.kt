@@ -5,7 +5,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.usecase.GetBookingUseCase
-import com.example.domain.usecase.GetRoomsUseCase
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 
@@ -23,7 +22,7 @@ class BookingScreenViewModel (
         }
     }
 
-    fun getRoomsData() {
+    fun getBookingData() {
         viewModelScope.launch {
             _state.value = BookingScreenUiState.Loading
 

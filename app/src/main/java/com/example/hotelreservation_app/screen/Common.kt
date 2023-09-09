@@ -38,3 +38,25 @@ fun SpacerBetween(){
             .background(Color(0xFFF6F6F9))
     )
 }
+
+@Composable
+fun ScreenError(errorText: String){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ){
+        Text(text = errorText)
+    }
+}
+
+@Composable
+fun ScreenLoadind(){
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
+    ){
+        CircularProgressIndicator()
+    }
+}

@@ -13,35 +13,55 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.example.domain.entity.HotelEntity
 import com.example.hotelreservation_app.R
+import com.example.hotelreservation_app.presentation.HotelScreenUiState
+import com.example.hotelreservation_app.presentation.HotelScreenViewModel
 import com.example.hotelreservation_app.screen.navigation.Routes
+import org.koin.androidx.compose.koinViewModel
 import java.lang.Math.abs
 
 @Composable
-fun HotelScreen(navController: NavHostController){
-    HotelMainInfo(navController)
+fun HotelScreen(
+    navController: NavHostController,
+    viewModel: HotelScreenViewModel = koinViewModel(),
+){
+    val state by viewModel.state.observeAsState(HotelScreenUiState.Initial)
+
+    when(state){
+        HotelScreenUiState.Initial    -> viewModel.getHotelData()
+        HotelScreenUiState.Loading    -> ScreenLoadind()
+        is HotelScreenUiState.Content -> {
+            HotelMainInfo(hotelData = (state as HotelScreenUiState.Content).hotelData, navController = navController)
+        }
+        is HotelScreenUiState.Error   -> ScreenError(errorText = (state as HotelScreenUiState.Error).message.orEmpty())
+    }
 }
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun HotelMainInfo(
+    hotelData: HotelEntity,
     navController: NavHostController
 ){
-    val color = listOf(Color.Red, Color.Black, Color.Blue, Color.Green, Color.Magenta)
     val pagerState = rememberPagerState(0)
-    val pageCount = 5
+    val pageCount = hotelData.imageUrls.size
 
     Column(
         modifier = Modifier
@@ -71,15 +91,16 @@ fun HotelMainInfo(
                     state = pagerState,
                     pageCount = pageCount
                 ) { page ->
-                    Image(
+                    AsyncImage(
                         modifier = Modifier
                             .size(width = 457.dp, height = 300.dp)
                             .graphicsLayer {
                                 clip = true
                                 shape = RoundedCornerShape(20.dp)
                             },
-                        painter = ColorPainter(color[page]),
-                        contentDescription = "Картинка"
+                        model = hotelData.imageUrls[pagerState.currentPage],
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop
                     )
                 }
 
@@ -110,7 +131,7 @@ fun HotelMainInfo(
                 Row(
                     Modifier
                         .padding(10.dp)
-                        .size(width = 100.dp, height = 23.dp)
+                        .size(width = 70.dp, height = 23.dp)
                         .graphicsLayer {
                             clip = true
                             shape = RoundedCornerShape(7.dp)
@@ -120,8 +141,6 @@ fun HotelMainInfo(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     repeat(pageCount) { iteration ->
-                        //val color = if (pagerState.currentPage == iteration) Color.Black else Color.LightGray
-
                         val color = when(abs(iteration - pagerState.currentPage)){
                             0 -> Color(0xFF000000)
                             1 -> Color(0x37000000)
@@ -163,27 +182,28 @@ fun HotelMainInfo(
                     modifier = Modifier
                         .size(19.dp),
                     imageVector = Icons.Outlined.Star,
-                    contentDescription = "Star",
+                    contentDescription = "",
                     tint = Color(0xFFFFA800)
                 )
                 Text(
                     //modifier = Modifier,
                     color = Color(0xFFFFA800),
-                    text = "5 Превосходно",
+                    text = "${hotelData.rating} ${hotelData.ratingName}",
                     fontSize = 19.sp,
                 )
             }
 
             Text(
                 modifier = Modifier.padding(top = 0.dp, bottom = 10.dp),
-                text = "Steigenberger Makadi",
+                text = hotelData.name,
                 fontSize = 25.sp,
             )
 
             Text(
                 modifier = Modifier
-                    .padding(top = 0.dp, bottom = 10.dp),
-                text = "Madinat Makadi, Safaga Road, Makadi Bay, Египет",
+                    .padding(top = 0.dp, bottom = 10.dp)
+                    .clickable {  },
+                text = hotelData.adress,
                 fontSize = 19.sp,
                 color = Color(0xFF0D72FF)
             )
@@ -194,12 +214,12 @@ fun HotelMainInfo(
                 verticalAlignment = Alignment.Bottom
             ){
                 Text(
-                    text = "от 134 673 ₽",
+                    text = "от ${hotelData.minimalPrice} ₽",
                     fontSize = 30.sp,
                 )
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
-                    text = "за тур с перелётом",
+                    text = hotelData.priceForIt,
                     fontSize = 18.sp,
                     color = Color(0xFF828796)
                 )
@@ -208,7 +228,7 @@ fun HotelMainInfo(
 
         SpacerBetween()
 
-        val tags = listOf("Бесплатный Wifi на всей территории отеля", "1 км до пляжа", "Бесплатный фитнес-клуб", "20 км до аэропорта")
+        val tags = hotelData.peculiarities
 
         Column(
             modifier = Modifier
@@ -246,7 +266,7 @@ fun HotelMainInfo(
 
             Text(
                 modifier = Modifier.padding(top = 0.dp, bottom = 20.dp),
-                text = "Отель VIP-класса с собственными гольф полями. Высокий уровнь сервиса. Рекомендуем для респектабельного отдыха. Отель принимает гостей от 18 лет!",
+                text = hotelData.description,
                 fontSize =  18.sp,
             )
 
@@ -266,7 +286,7 @@ fun HotelMainInfo(
                     modifier = Modifier
                         .padding(end = 15.dp)
                         .size(35.dp),
-                    contentDescription = "emoji_happy"
+                    contentDescription = ""
                 )
                 Column(
                     modifier = Modifier
@@ -292,7 +312,7 @@ fun HotelMainInfo(
                         painterResource(id = R.drawable.chevron_right),
                         modifier = Modifier
                             .size(35.dp),
-                        contentDescription = "chevron_right"
+                        contentDescription = ""
                     )
                 }
 
@@ -312,7 +332,7 @@ fun HotelMainInfo(
                     modifier = Modifier
                         .padding(end = 15.dp)
                         .size(35.dp),
-                    contentDescription = "Localized description"
+                    contentDescription = ""
                 )
                 Column(
                     modifier = Modifier
@@ -338,7 +358,7 @@ fun HotelMainInfo(
                         painterResource(id = R.drawable.chevron_right),
                         modifier = Modifier
                             .size(35.dp),
-                        contentDescription = "Localized description"
+                        contentDescription = ""
                     )
                 }
 
@@ -358,7 +378,7 @@ fun HotelMainInfo(
                     modifier = Modifier
                         .padding(end = 15.dp)
                         .size(35.dp),
-                    contentDescription = "Localized description"
+                    contentDescription = ""
                 )
                 Column(
                     modifier = Modifier
@@ -384,7 +404,7 @@ fun HotelMainInfo(
                         painterResource(id = R.drawable.chevron_right),
                         modifier = Modifier
                             .size(35.dp),
-                        contentDescription = "Localized description"
+                        contentDescription = ""
                     )
                 }
 
@@ -400,7 +420,7 @@ fun HotelMainInfo(
                 .fillMaxWidth()
                 .padding(start = 21.dp, top = 10.dp, bottom = 10.dp, end = 21.dp),
             onClick = {
-                navController.navigate(Routes.RoomScreenRoute.route)
+                navController.navigate(Routes.RoomScreenRoute.route + "/${hotelData.name}")
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF0D72FF),
@@ -416,11 +436,4 @@ fun HotelMainInfo(
     }
 
 
-}
-
-@Preview
-@Composable
-fun HotelScreenPreview(){
-    val navController = rememberNavController()
-    HotelScreen(navController)
 }

@@ -31,21 +31,17 @@ fun NavHostContainer(
                 HotelScreen(navController = navController)
             }
 
-            composable(Routes.RoomScreenRoute.route) {
-                RoomScreen(navController = navController)
+            composable(Routes.RoomScreenRoute.route + "/{hotelName}") {
+                RoomScreen(navController = navController, hotelName = it.arguments?.getString("hotelName"))
             }
 
             composable(Routes.PaidForScreenRoute.route) {
                 PaidForScreen(navController = navController)
             }
 
-            composable(Routes.BookingScreenRoute.route) {
-                BookingScreen(navController = navController)
+            composable(Routes.BookingScreenRoute.route + "/{hotelName}") {
+                BookingScreen(navController = navController, hotelName = it.arguments?.getString("hotelName"))
             }
-
-        /*    composable(Routes.InfoStarshipScreenRoute.route + "/{starshipId}") {
-                InfoStarshipScreen(starshipId = it.arguments?.getString("starshipId"))
-            }*/
         }
     )
 }

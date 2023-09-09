@@ -16,8 +16,8 @@ data class RoomModel(
     val price: Int,
     @SerializedName("price_per")
     val pricePer: String,
-    @SerializedName("peculiarities")
-    val imageUrls: List<String>,
     @SerializedName("image_urls")
+    val imageUrls: List<String>,
+    @SerializedName("peculiarities")
     val peculiarities: List<String>
 )

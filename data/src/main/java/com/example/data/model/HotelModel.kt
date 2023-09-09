@@ -24,8 +24,8 @@ data class HotelModel(
 )
 
 data class AboutTheHotel(
-    @SerializedName("hotel_name")
+    @SerializedName("description")
     val description: String,
-    @SerializedName("hotel_name")
+    @SerializedName("peculiarities")
     val peculiarities: List<String>
 )

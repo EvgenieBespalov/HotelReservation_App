@@ -84,7 +84,7 @@ fun PaidForInfo(
                         .padding(top = 0.dp, bottom = 30.dp)
                         .size(90.dp),
                     contentScale = ContentScale.Crop,
-                    contentDescription = "Icon planet"
+                    contentDescription = ""
                 )
                 Text(
                     modifier = Modifier.padding(top = 0.dp, bottom = 10.dp),
@@ -93,7 +93,7 @@ fun PaidForInfo(
                 )
                 Text(
                     modifier = Modifier,
-                    text = "Подтверждение заказа №104893 может занять некоторое время (от 1 часа до суток). Как только мы получим ответ от туроператора, вам на почту придет уведомление.",
+                    text = "Подтверждение заказа №${(0..10000).random()} может занять некоторое время (от 1 часа до суток). Как только мы получим ответ от туроператора, вам на почту придет уведомление.",
                     fontSize = 19.sp,
                     color = Color(0xFF828796),
                     textAlign = TextAlign.Center

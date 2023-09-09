@@ -14,24 +14,39 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.ColorPainter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
+import com.example.domain.entity.RoomEnity
 import com.example.hotelreservation_app.R
+import com.example.hotelreservation_app.presentation.HotelScreenUiState
+import com.example.hotelreservation_app.presentation.RoomScreenUiState
+import com.example.hotelreservation_app.presentation.RoomScreenViewModel
 import com.example.hotelreservation_app.screen.navigation.Routes
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RoomScreen(navController: NavHostController){
+fun RoomScreen(
+    navController: NavHostController,
+    hotelName: String?,
+    viewModel: RoomScreenViewModel = koinViewModel()
+){
+    val state by viewModel.state.observeAsState(RoomScreenUiState.Initial)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
@@ -53,8 +68,8 @@ fun RoomScreen(navController: NavHostController){
                     ){
 
                         Text(
-                            modifier = Modifier.padding(start = 0.dp),
-                            text = "Steigenberger Makadi",
+                            modifier = Modifier.padding(start = 10.dp),
+                            text = hotelName ?: "Отель",
                             fontSize = 20.sp,
                         )
                     }
@@ -62,18 +77,29 @@ fun RoomScreen(navController: NavHostController){
             )
         },
         content = { padding ->
-            RoomList(
-                navController = navController,
-                padding = padding
-            )
+            when(state){
+                RoomScreenUiState.Initial    -> viewModel.getRoomsData()
+                RoomScreenUiState.Loading    -> ScreenLoadind()
+                is RoomScreenUiState.Content -> {
+                    RoomList(
+                        roomsData = (state as RoomScreenUiState.Content).roomsData,
+                        navController = navController,
+                        padding = padding,
+                        hotelName = hotelName
+                    )
+                }
+                is RoomScreenUiState.Error   -> ScreenError(errorText = (state as RoomScreenUiState.Error).message.orEmpty())
+            }
         }
     )
 }
 
 @Composable
 fun RoomList(
+    roomsData: List<RoomEnity>,
     navController: NavHostController,
-    padding: PaddingValues
+    padding: PaddingValues,
+    hotelName: String?
 ){
     LazyColumn(
         modifier = Modifier
@@ -81,10 +107,14 @@ fun RoomList(
             .background(Color(0xFFF6F6F9)),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ){
-        item { Spacer(modifier = Modifier.height(0.dp).fillMaxWidth()) }
-        items(10){
+        item { Spacer(modifier = Modifier
+            .height(0.dp)
+            .fillMaxWidth()) }
+        items(roomsData.size){
             RoomInfo(
-                navController
+                navController = navController,
+                roomData = roomsData[it],
+                hotelName = hotelName
             )
         }
     }
@@ -93,11 +123,12 @@ fun RoomList(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalLayoutApi::class)
 @Composable
 fun RoomInfo(
-    navController: NavHostController
+    navController: NavHostController,
+    roomData: RoomEnity,
+    hotelName: String?
 ){
-    val color = listOf(Color.Red, Color.Black, Color.Blue, Color.Green, Color.Magenta)
     val pagerState = rememberPagerState(0)
-    val pageCount = 5
+    val pageCount = roomData.imageUrls.size
 
     Column(
         modifier = Modifier
@@ -119,22 +150,23 @@ fun RoomInfo(
                     state = pagerState,
                     pageCount = pageCount
                 ) { page ->
-                    Image(
+                    AsyncImage(
                         modifier = Modifier
                             .size(width = 457.dp, height = 300.dp)
                             .graphicsLayer {
                                 clip = true
                                 shape = RoundedCornerShape(20.dp)
                             },
-                        painter = ColorPainter(color[page]),
-                        contentDescription = "Картинка"
+                        model = roomData.imageUrls[pagerState.currentPage],
+                        contentDescription = "",
+                        contentScale = ContentScale.Crop
                     )
                 }
 
                 Row(
                     Modifier
                         .padding(10.dp)
-                        .size(width = 100.dp, height = 23.dp)
+                        .size(width = 70.dp, height = 23.dp)
                         .graphicsLayer {
                             clip = true
                             shape = RoundedCornerShape(7.dp)
@@ -171,11 +203,11 @@ fun RoomInfo(
         ){
             Text(
                 modifier = Modifier.padding(top = 0.dp, bottom = 10.dp),
-                text = "Стандартный с видом на бассейн или сад",
+                text = roomData.name,
                 fontSize = 25.sp,
             )
 
-            val tags = listOf("Все включено", "Кондиционер")
+            val tags = roomData.peculiarities
             FlowRow(
                 modifier = Modifier.padding(start = 10.dp, top = 0.dp, bottom = 0.dp),
                 horizontalArrangement = Arrangement.Start
@@ -208,7 +240,8 @@ fun RoomInfo(
             ){
                 Text(
                     modifier = Modifier
-                        .padding(start = 5.dp),
+                        .padding(start = 5.dp)
+                        .clickable {  },
                     text = "Подробнее о номере",
                     fontSize = 19.sp,
                     color = Color(0xFF0D72FF)
@@ -228,12 +261,12 @@ fun RoomInfo(
                 verticalAlignment = Alignment.Bottom
             ){
                 Text(
-                    text = "186 600 ₽",
+                    text = "${roomData.price} ₽",
                     fontSize = 30.sp,
                 )
                 Text(
                     modifier = Modifier.padding(start = 10.dp),
-                    text = "за 7 ночей с перелётом",
+                    text = roomData.pricePer,
                     fontSize = 18.sp,
                     color = Color(0xFF828796)
                 )
@@ -244,7 +277,7 @@ fun RoomInfo(
                     .fillMaxWidth()
                     .padding(top = 0.dp, bottom = 10.dp),
                 onClick = {
-                    navController.navigate(Routes.BookingScreenRoute.route)
+                    navController.navigate(Routes.BookingScreenRoute.route + "/${hotelName}")
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF0D72FF),
@@ -259,11 +292,4 @@ fun RoomInfo(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun RoomScreenPreview(){
-    val navController = rememberNavController()
-    RoomScreen(navController)
 }

@@ -5,52 +5,54 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.focus.onFocusEvent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TransformedText
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import com.example.domain.entity.BookingEntity
 import com.example.hotelreservation_app.R
+import com.example.hotelreservation_app.presentation.BookingScreenUiState
+import com.example.hotelreservation_app.presentation.BookingScreenViewModel
+import com.example.hotelreservation_app.presentation.RoomScreenUiState
 import com.example.hotelreservation_app.screen.navigation.Routes
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BookingScreen(navController: NavHostController){
+fun BookingScreen(
+    navController: NavHostController,
+    hotelName: String?,
+    viewModel: BookingScreenViewModel = koinViewModel()
+){
+    val state by viewModel.state.observeAsState(BookingScreenUiState.Initial)
+
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            navController.navigate(Routes.RoomScreenRoute.route)
+                            navController.navigate(Routes.RoomScreenRoute.route + "/${hotelName}")
                         }
                     ) {
                         Icon(
@@ -69,10 +71,18 @@ fun BookingScreen(navController: NavHostController){
             )
         },
         content = { padding ->
-            BookingInfo(
-                navController = navController,
-                padding = padding
-            )
+            when(state){
+                BookingScreenUiState.Initial    -> viewModel.getBookingData()
+                BookingScreenUiState.Loading    -> ScreenLoadind()
+                is BookingScreenUiState.Content -> {
+                    BookingInfo(
+                        navController = navController,
+                        padding = padding,
+                        bookingData = (state as BookingScreenUiState.Content).bookingData
+                    )
+                }
+                is BookingScreenUiState.Error   -> ScreenError(errorText = (state as BookingScreenUiState.Error).message.orEmpty())
+            }
         }
     )
 }
@@ -80,10 +90,21 @@ fun BookingScreen(navController: NavHostController){
 @Composable
 fun BookingInfo(
     navController: NavHostController,
-    padding: PaddingValues
+    padding: PaddingValues,
+    bookingData: BookingEntity
 ){
     var countTourists by remember { mutableStateOf(0) }
     val touristNumber = listOf("Второй", "Третий", "Четвертый", "Пятый", "Шестой", "Седьмой", "Восьмой")
+
+    var nameCorrect by remember { mutableStateOf(false) }
+    var lastNameCorrect by remember { mutableStateOf(false) }
+    var dateBirthCorrect by remember { mutableStateOf(false) }
+    var citizenshipCorrect by remember { mutableStateOf(false) }
+    var passportNumberCorrect by remember { mutableStateOf(false) }
+    var validityPeriodCorrect by remember { mutableStateOf(false) }
+
+    var userCorrect by remember { mutableStateOf(false) }
+    var payCorrect by remember { mutableStateOf(true) }
 
     LazyColumn(
         modifier = Modifier
@@ -114,27 +135,27 @@ fun BookingInfo(
                         modifier = Modifier
                             .size(19.dp),
                         imageVector = Icons.Outlined.Star,
-                        contentDescription = "Star",
+                        contentDescription = "",
                         tint = Color(0xFFFFA800)
                     )
                     Text(
                         //modifier = Modifier,
                         color = Color(0xFFFFA800),
-                        text = "5 Превосходно",
+                        text = "${bookingData.horating} ${bookingData.ratingName}",
                         fontSize = 19.sp,
                     )
                 }
 
                 Text(
                     modifier = Modifier.padding(top = 0.dp, bottom = 10.dp),
-                    text = "Steigenberger Makadi",
+                    text = bookingData.hotelName,
                     fontSize = 25.sp,
                 )
 
                 Text(
                     modifier = Modifier
                         .padding(top = 0.dp, bottom = 10.dp),
-                    text = "Madinat Makadi, Safaga Road, Makadi Bay, Египет",
+                    text = bookingData.hotelAdress,
                     fontSize = 19.sp,
                     color = Color(0xFF0D72FF)
                 )
@@ -147,118 +168,34 @@ fun BookingInfo(
                     .padding(start = 21.dp, end = 21.dp),
                 horizontalAlignment = Alignment.Start
             ){
-                Row(
-                    modifier = Modifier
-                        .padding(top = 10.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Вылет из",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "Санкт-Петербург",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 0.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Страна, город",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "Египет, Хургада",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 0.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Даты",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "19.09.2023 – 27.09.2023",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 0.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Кол-во ночей",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "7 ночей",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 0.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Отель",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "Steigenberger Makadi",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 0.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Номер",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "Стандартный с видом на бассейн или сад",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 0.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.width(150.dp),
-                        text = "Питание",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "Все включено",
-                        fontSize = 19.sp
-                    )
-                }
+                RowWidth(
+                    firstText = "Вылет из",
+                    secondString = bookingData.departure
+                )
+                RowWidth(
+                    firstText = "Страна, город",
+                    secondString = bookingData.arrivalCountry
+                )
+                RowWidth(
+                    firstText = "Даты",
+                    secondString = "${bookingData.tourDateStart} – ${bookingData.tourDateStop}"
+                )
+                RowWidth(
+                    firstText = "Кол-во ночей",
+                    secondString = "${bookingData.numberOfNights} ночей"
+                )
+                RowWidth(
+                    firstText = "Отель",
+                    secondString = bookingData.hotelName
+                )
+                RowWidth(
+                    firstText = "Номер",
+                    secondString = bookingData.room
+                )
+                RowWidth(
+                    firstText = "Питание",
+                    secondString = bookingData.nutrition
+                )
             }
 
             SpacerBetween()
@@ -314,12 +251,16 @@ fun BookingInfo(
                 )
 
                 var email by remember { mutableStateOf("") }
-                var emailCorrect by remember { mutableStateOf(false) }
+                var emailCorrect by remember { mutableStateOf(true) }
+                var emailCorrectColor by remember { mutableStateOf(true) }
                 TextField(
                     modifier = Modifier
                         .padding(0.dp, 10.dp, 0.dp, 10.dp)
                         .height(65.dp)
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .onFocusChanged {
+                            emailCorrectColor = emailCorrect
+                        },
                     value = email,
                     onValueChange = {
                         if (it.length <= 10)
@@ -339,7 +280,8 @@ fun BookingInfo(
                     },
                     colors = TextFieldDefaults.textFieldColors(
                         textColor = Color.Black,
-                        containerColor = Color(0xFFF6F6F9),
+                        containerColor = if(emailCorrectColor) Color(0xFFF6F6F9)
+                        else Color(0x26EB5757),
                         focusedIndicatorColor = Color.Transparent,
                         unfocusedIndicatorColor = Color.Transparent,
                         disabledIndicatorColor = Color.Transparent,
@@ -367,17 +309,11 @@ fun BookingInfo(
                 horizontalAlignment = Alignment.Start
             ) {
                 var name by remember { mutableStateOf("") }
-                var nameCorrect by remember { mutableStateOf(false) }
                 var lastName by remember { mutableStateOf("") }
-                var lastNameCorrect by remember { mutableStateOf(false) }
                 var dateBirth by remember { mutableStateOf("") }
-                var dateBirthCorrect by remember { mutableStateOf(false) }
                 var citizenship by remember { mutableStateOf("") }
-                var citizenshipCorrect by remember { mutableStateOf(false) }
                 var passportNumber by remember { mutableStateOf("") }
-                var passportNumberCorrect by remember { mutableStateOf(false) }
                 var validityPeriod by remember { mutableStateOf("") }
-                var validityPeriodCorrect by remember { mutableStateOf(false) }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -423,7 +359,10 @@ fun BookingInfo(
                         modifier = Modifier
                             .padding(0.dp, 10.dp, 0.dp, 10.dp)
                             .height(65.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                userCorrect = nameCorrect && lastNameCorrect && dateBirthCorrect && citizenshipCorrect && passportNumberCorrect && validityPeriodCorrect
+                            },
                         value = name,
                         onValueChange = {
                             name = it
@@ -442,7 +381,8 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = Color(0xFFF6F6F9),
+                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent,
@@ -456,7 +396,10 @@ fun BookingInfo(
                         modifier = Modifier
                             .padding(0.dp, 10.dp, 0.dp, 10.dp)
                             .height(65.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                userCorrect = nameCorrect && lastNameCorrect && dateBirthCorrect && citizenshipCorrect && passportNumberCorrect && validityPeriodCorrect
+                            },
                         value = lastName,
                         onValueChange = {
                             lastName = it
@@ -475,7 +418,8 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = Color(0xFFF6F6F9),
+                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent,
@@ -489,7 +433,10 @@ fun BookingInfo(
                         modifier = Modifier
                             .padding(0.dp, 10.dp, 0.dp, 10.dp)
                             .height(65.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                userCorrect = nameCorrect && lastNameCorrect && dateBirthCorrect && citizenshipCorrect && passportNumberCorrect && validityPeriodCorrect
+                            },
                         value = dateBirth,
                         onValueChange = {
                             dateBirth = it
@@ -508,7 +455,8 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = Color(0xFFF6F6F9),
+                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent,
@@ -522,7 +470,10 @@ fun BookingInfo(
                         modifier = Modifier
                             .padding(0.dp, 10.dp, 0.dp, 10.dp)
                             .height(65.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                userCorrect = nameCorrect && lastNameCorrect && dateBirthCorrect && citizenshipCorrect && passportNumberCorrect && validityPeriodCorrect
+                            },
                         value = citizenship,
                         onValueChange = {
                             citizenship = it
@@ -541,7 +492,8 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = Color(0xFFF6F6F9),
+                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent,
@@ -555,7 +507,10 @@ fun BookingInfo(
                         modifier = Modifier
                             .padding(0.dp, 10.dp, 0.dp, 10.dp)
                             .height(65.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                userCorrect = nameCorrect && lastNameCorrect && dateBirthCorrect && citizenshipCorrect && passportNumberCorrect && validityPeriodCorrect
+                            },
                         value = passportNumber,
                         onValueChange = {
                             passportNumber = it
@@ -574,7 +529,8 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = Color(0xFFF6F6F9),
+                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent,
@@ -588,7 +544,10 @@ fun BookingInfo(
                         modifier = Modifier
                             .padding(0.dp, 10.dp, 0.dp, 10.dp)
                             .height(65.dp)
-                            .fillMaxWidth(),
+                            .fillMaxWidth()
+                            .onFocusChanged {
+                                userCorrect = nameCorrect && lastNameCorrect && dateBirthCorrect && citizenshipCorrect && passportNumberCorrect && validityPeriodCorrect
+                            },
                         value = validityPeriod,
                         onValueChange = {
                             validityPeriod = it
@@ -607,7 +566,8 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = Color(0xFFF6F6F9),
+                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
                             disabledIndicatorColor = Color.Transparent,
@@ -678,71 +638,14 @@ fun BookingInfo(
                     .padding(start = 21.dp, end = 21.dp, bottom = 10.dp),
                 horizontalAlignment = Alignment.Start
             ){
-                Row(
-                    modifier = Modifier
-                        .padding(top = 10.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Тур",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "186 600 ₽",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 10.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Топливный сбор",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "9 300 ₽",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 10.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "Сервисный сбор",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "2 136 ₽",
-                        fontSize = 19.sp
-                    )
-                }
-                Row(
-                    modifier = Modifier
-                        .padding(top = 10.dp, bottom = 10.dp)
-                ){
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = "К оплате",
-                        fontSize = 19.sp,
-                        color = Color(0xFF828796)
-                    )
-                    Text(
-                        modifier = Modifier,
-                        text = "198 036 ₽",
-                        fontSize = 19.sp,
-                        color = Color(0xFF0D72FF)
-                    )
-                }
+                RowWeight(firstText = "Тур", secondString = bookingData.tourPrice, colorSecond = Color.Black)
+                RowWeight(firstText = "Топливный сбор", secondString = bookingData.fuelCharge, colorSecond = Color.Black)
+                RowWeight(firstText = "Сервисный сбор", secondString = bookingData.serviceCharge, colorSecond = Color.Black)
+                RowWeight(
+                    firstText = "К оплате",
+                    secondString = (bookingData.tourPrice.toInt() + bookingData.fuelCharge.toInt() + bookingData.serviceCharge.toInt()).toString(),
+                    colorSecond = Color(0xFF0D72FF)
+                )
             }
 
             SpacerBetween()
@@ -758,16 +661,20 @@ fun BookingInfo(
                         .fillMaxWidth()
                         .padding(top = 0.dp, bottom = 10.dp),
                     onClick = {
-                        navController.navigate(Routes.PaidForScreenRoute.route)
+                        if (userCorrect)
+                            navController.navigate(Routes.PaidForScreenRoute.route)
+                        else
+                            payCorrect = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0D72FF),
+                        containerColor = if(payCorrect) Color(0xFF0D72FF)
+                        else Color(0x26EB5757),
                         contentColor = Color.White,
                     ),
                     shape = RoundedCornerShape(15.dp),
                 ){
                     Text(
-                        text = "Оплатить 198 036 ₽",
+                        text = "Оплатить ${(bookingData.tourPrice.toInt() + bookingData.fuelCharge.toInt() + bookingData.serviceCharge.toInt()).toString()} ₽",
                         fontSize = 18.sp
                     )
                 }
@@ -1010,11 +917,45 @@ fun OtherTouristData(touristNumber: String){
 }
 
 
-@Preview
 @Composable
-fun BookingScreenPreview(){
-    val navController = rememberNavController()
-    BookingScreen(navController)
+fun RowWidth(firstText: String, secondString: String){
+    Row(
+        modifier = Modifier
+            .padding(top = 5.dp, bottom = 5.dp)
+    ){
+        Text(
+            modifier = Modifier.width(150.dp),
+            text = firstText,
+            fontSize = 17.sp,
+            color = Color(0xFF828796)
+        )
+        Text(
+            modifier = Modifier,
+            text = secondString,
+            fontSize = 17.sp
+        )
+    }
+}
+
+@Composable
+fun RowWeight(firstText: String, secondString: String, colorSecond: Color){
+    Row(
+        modifier = Modifier
+            .padding(top = 10.dp, bottom = 10.dp)
+    ){
+        Text(
+            modifier = Modifier.weight(1f),
+            text = firstText,
+            fontSize = 19.sp,
+            color = Color(0xFF828796)
+        )
+        Text(
+            modifier = Modifier,
+            text = "${secondString} ₽",
+            fontSize = 19.sp,
+            color = colorSecond
+        )
+    }
 }
 
 class MaskTransformation() : VisualTransformation {
