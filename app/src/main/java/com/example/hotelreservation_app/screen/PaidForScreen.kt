@@ -23,14 +23,17 @@ import com.example.hotelreservation_app.screen.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PaidForScreen(navController: NavHostController){
+fun PaidForScreen(
+    navController: NavHostController,
+    hotelName: String?
+){
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
                 navigationIcon = {
                     IconButton(
                         onClick = {
-                            navController.navigate(Routes.BookingScreenRoute.route)
+                            navController.navigate(Routes.BookingScreenRoute.route + "/${hotelName}")
                         }
                     ) {
                         Icon(
@@ -121,11 +124,4 @@ fun PaidForInfo(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun PaidForScreenPreview(){
-    val navController = rememberNavController()
-    PaidForScreen(navController)
 }

@@ -35,8 +35,8 @@ fun NavHostContainer(
                 RoomScreen(navController = navController, hotelName = it.arguments?.getString("hotelName"))
             }
 
-            composable(Routes.PaidForScreenRoute.route) {
-                PaidForScreen(navController = navController)
+            composable(Routes.PaidForScreenRoute.route + "/{hotelName}") {
+                PaidForScreen(navController = navController, hotelName = it.arguments?.getString("hotelName"))
             }
 
             composable(Routes.BookingScreenRoute.route + "/{hotelName}") {

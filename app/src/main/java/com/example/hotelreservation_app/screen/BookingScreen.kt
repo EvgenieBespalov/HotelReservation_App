@@ -78,7 +78,8 @@ fun BookingScreen(
                     BookingInfo(
                         navController = navController,
                         padding = padding,
-                        bookingData = (state as BookingScreenUiState.Content).bookingData
+                        bookingData = (state as BookingScreenUiState.Content).bookingData,
+                        hotelName = hotelName
                     )
                 }
                 is BookingScreenUiState.Error   -> ScreenError(errorText = (state as BookingScreenUiState.Error).message.orEmpty())
@@ -91,7 +92,8 @@ fun BookingScreen(
 fun BookingInfo(
     navController: NavHostController,
     padding: PaddingValues,
-    bookingData: BookingEntity
+    bookingData: BookingEntity,
+    hotelName: String?
 ){
     var countTourists by remember { mutableStateOf(0) }
     val touristNumber = listOf("Второй", "Третий", "Четвертый", "Пятый", "Шестой", "Седьмой", "Восьмой")
@@ -381,7 +383,7 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            containerColor = if (nameCorrect || payCorrect) Color(0xFFF6F6F9)
                             else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
@@ -418,7 +420,7 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            containerColor = if (lastNameCorrect || payCorrect) Color(0xFFF6F6F9)
                             else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
@@ -455,7 +457,7 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            containerColor = if (dateBirthCorrect || payCorrect) Color(0xFFF6F6F9)
                             else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
@@ -492,7 +494,7 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            containerColor = if (citizenshipCorrect || payCorrect) Color(0xFFF6F6F9)
                             else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
@@ -529,7 +531,7 @@ fun BookingInfo(
                         },
                         colors = TextFieldDefaults.textFieldColors(
                             textColor = Color.Black,
-                            containerColor = if (validityPeriodCorrect || payCorrect) Color(0xFFF6F6F9)
+                            containerColor = if (passportNumberCorrect || payCorrect) Color(0xFFF6F6F9)
                             else Color(0x26EB5757),
                             focusedIndicatorColor = Color.Transparent,
                             unfocusedIndicatorColor = Color.Transparent,
@@ -662,12 +664,12 @@ fun BookingInfo(
                         .padding(top = 0.dp, bottom = 10.dp),
                     onClick = {
                         if (userCorrect)
-                            navController.navigate(Routes.PaidForScreenRoute.route)
+                            navController.navigate(Routes.PaidForScreenRoute.route + "/${hotelName}")
                         else
                             payCorrect = false
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(payCorrect) Color(0xFF0D72FF)
+                        containerColor = if(payCorrect || userCorrect) Color(0xFF0D72FF)
                         else Color(0x26EB5757),
                         contentColor = Color.White,
                     ),
